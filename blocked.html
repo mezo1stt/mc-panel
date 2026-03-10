@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Blocked Servers</title>
+<style>
+:root{
+  --bg:#0b0f17;
+  --card:#111827;
+  --border:#23304a;
+  --row:#0b1220;
+  --rowBorder:#1f2a44;
+}
+body{font-family:system-ui;background:var(--bg);color:#e6e6e6;margin:0;min-height:100vh}
+.wrap{width:min(1000px,94vw);margin:22px auto 40px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.badge{padding:6px 10px;border:1px solid #22314f;border-radius:999px;background:var(--card);font-size:12px}
+.linkBtn{text-decoration:none;padding:10px 14px;border-radius:12px;background:#0b1220;border:1px solid #23304a;color:#fff;font-weight:800}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.tableWrap{border:1px solid var(--rowBorder);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse;background:var(--row)}
+th,td{padding:12px;border-bottom:1px solid var(--rowBorder);text-align:left;direction:ltr}
+th{background:#0a1020}
+tr:last-child td{border-bottom:none}
+button{padding:10px 14px;border-radius:12px;border:1px solid #14532d;background:#14532d;color:#fff;font-weight:900;cursor:pointer}
+.empty{padding:30px;text-align:center;opacity:.7}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="badge">Blocked Servers</div>
+    <a class="linkBtn" href="/">Back</a>
+  </div>
+
+  <div class="card">
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+const TOKEN = "PUT_A_LONG_TOKEN_HERE_123456789_ABCDEFG";
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+async function unblock(uuid){
+  if(!confirm("متأكد تعمل Unblock؟")) return;
+
+  const r = await fetch(`/api/servers/${encodeURIComponent(uuid)}/unblock`, {
+    method: "POST",
+    headers: { "X-Token": TOKEN }
+  });
+
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) {
+    alert(j?.error || "فشل فك البلوك");
+    return;
+  }
+
+  await loadBlocked();
+}
+
+async function loadBlocked(){
+  const content = document.getElementById("content");
+
+  try{
+    const r = await fetch("/api/blocked");
+    const j = await r.json();
+    const list = (j && j.ok && Array.isArray(j.blocked)) ? j.blocked : [];
+
+    if (!list.length) {
+      content.innerHTML = `<div class="empty"> </div>`;
+      return;
+    }
+
+    content.innerHTML = `
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Server Name</th>
+              <th>UUID</th>
+              <th>Blocked At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map(item => `
+              <tr>
+                <td>${escapeHtml(item.serverName || "Unknown")}</td>
+                <td class="mono">${escapeHtml(item.serverUuid || "")}</td>
+                <td class="mono">${escapeHtml(item.blockedAt || "")}</td>
+                <td><button onclick="unblock('${escapeHtml(item.serverUuid || "")}')">Unblock</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }catch(e){
+    content.innerHTML = `<div class="empty">OFFLINE</div>`;
+  }
+}
+
+loadBlocked();
+setInterval(loadBlocked, 5000);
+</script>
+</body>
+</html>
