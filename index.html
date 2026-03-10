@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MC Control Panel</title>
+
+<style>
+:root{
+  --bg:#0b0f17;
+  --card:#111827;
+  --muted:rgba(230,230,230,.75);
+  --border:#23304a;
+  --row:#0b1220;
+  --rowBorder:#1f2a44;
+  --btn:#1f2a44;
+  --btnBorder:#2a3a5f;
+}
+body{
+  font-family:system-ui;
+  background:var(--bg);
+  color:#e6e6e6;
+  margin:0;
+  min-height:100vh
+}
+.wrap{
+  width:min(1100px,94vw);
+  margin:22px auto 40px
+}
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+  flex-wrap:wrap
+}
+.badge{
+  padding:6px 10px;
+  border:1px solid #22314f;
+  border-radius:999px;
+  background:var(--card);
+  font-size:12px;
+  opacity:.95
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:14px
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.35)
+}
+.title{
+  font-size:18px;
+  font-weight:900;
+  margin:0 0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px
+}
+.pill{
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid #2a3a5f;
+  background:#0b1220;
+  opacity:.95;
+  white-space:nowrap
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:var(--row);
+  border:1px solid var(--rowBorder);
+  margin-top:10px
+}
+.k{opacity:.75}
+.v{
+  font-weight:800;
+  word-break:break-all;
+  text-align:left;
+  direction:ltr
+}
+.players{
+  margin-top:10px;
+  border:1px solid var(--rowBorder);
+  border-radius:14px;
+  overflow:hidden
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:var(--row)
+}
+th,td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--rowBorder);
+  text-align:left;
+  direction:ltr;
+  font-size:13px
+}
+th{
+  opacity:.85;
+  background:#0a1020
+}
+tr:last-child td{border-bottom:none}
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:12px
+}
+button{
+  flex:1;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--btnBorder);
+  background:var(--btn);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer
+}
+button:hover{filter:brightness(1.1)}
+button.danger{
+  border-color:#7f1d1d;
+  background:#3f0d0d
+}
+.hint{
+  opacity:.7;
+  font-size:12px;
+  margin-top:12px;
+  line-height:1.6
+}
+.mono{
+  font-family:ui-monospace,Menlo,Consolas,monospace
+}
+.muted{color:var(--muted)}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<div class="top">
+  <div class="badge">لوحة تحكم — متعدد السيرفرات</div>
+  <div class="badge" id="status">…</div>
+  <div class="badge mono">GET /api/servers</div>
+</div>
+
+<div class="actions">
+  <button onclick="loadServers()">تحديث</button>
+  <button onclick="toggleAuto()">Auto</button>
+</div>
+
+<div id="grid" class="grid" style="margin-top:14px;"></div>
+
+<div class="hint">
+⚠️ لازم تحمي الـ API بتوكِن حقيقي مش اللي في الصفحة.
+</div>
+
+</div>
+
+<script>
+
+let timer = null;
+const TOKEN = "PUT_A_LONG_TOKEN_HERE_123456789_ABCDEFG";
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+function card(server){
+
+  const name = escapeHtml(server.serverName || "Unknown");
+  const uuid = escapeHtml(server.serverUuid || "Unknown");
+  const macAddress = escapeHtml(server.macAddress || "Unknown");
+  const pluginName = escapeHtml(server.pluginName || "Unknown");
+  const pluginVersion = escapeHtml(server.pluginVersion || "Unknown");
+  const lastUpdate = escapeHtml(server.lastUpdate || "—");
+  const players = Array.isArray(server.players) ? server.players : [];
+
+  const rows = players.map(p => {
+    const pn = escapeHtml(p.name || "Unknown");
+    const pu = escapeHtml(p.uuid || "Unknown");
+    return `<tr><td>${pn}</td><td class="mono">${pu}</td></tr>`;
+  }).join("");
+
+  return `
+  <div class="card">
+
+    <div class="title">
+      <span>${name}</span>
+      <span class="pill">Players: ${players.length}</span>
+    </div>
+
+    <div class="row">
+      <div class="k">Server UUID</div>
+      <div class="v mono">${uuid}</div>
+    </div>
+
+    <div class="row">
+      <div class="k">MAC Address</div>
+      <div class="v mono">${macAddress}</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Plugin</div>
+      <div class="v">${pluginName} v${pluginVersion}</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Last Update</div>
+      <div class="v mono">${lastUpdate}</div>
+    </div>
+
+    <div class="players">
+      <table>
+        <thead>
+          <tr><th>Player</th><th>UUID</th></tr>
+        </thead>
+        <tbody>
+          ${rows || `<tr><td colspan="2" class="muted">مفيش لاعبين</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <button class="danger" onclick="shutdownServer('${uuid}')">Shutdown</button>
+    </div>
+
+  </div>
+  `;
+}
+
+async function loadServers(){
+  try{
+    const r = await fetch('/api/servers');
+    const j = await r.json();
+    const list = (j && j.ok && Array.isArray(j.servers)) ? j.servers : [];
+    document.getElementById('grid').innerHTML =
+      list.length
+        ? list.map(card).join("")
+        : `<div class="badge">مفيش سيرفرات متسجلة</div>`;
+    document.getElementById('status').textContent = `SERVERS: ${list.length}`;
+  }catch(e){
+    document.getElementById('status').textContent = 'OFFLINE';
+  }
+}
+
+async function shutdownServer(uuid){
+  if(!confirm("متأكد تعمل Shutdown؟")) return;
+  await fetch(`/api/servers/${encodeURIComponent(uuid)}/shutdown`,{
+    method:'POST',
+    headers:{ 'X-Token':TOKEN }
+  });
+  await loadServers();
+}
+
+function toggleAuto(){
+  if(timer){
+    clearInterval(timer);
+    timer=null;
+  }else{
+    timer=setInterval(loadServers,2000);
+  }
+}
+
+loadServers();
+
+</script>
+</body>
+</html>
