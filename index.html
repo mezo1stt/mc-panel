@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MC Control Panel - نظام الحظر المتكامل</title>
+<style>
+:root{
+  --bg1:#070b16;
+  --bg2:#0a1020;
+  --panel:rgba(12,18,37,.72);
+  --panel2:rgba(17,24,39,.86);
+  --border:rgba(64,93,180,.38);
+  --cyan:#00e5ff;
+  --pink:#ff2bd6;
+  --green:#00ff9d;
+  --danger:#ff4d6d;
+  --purple:#b829ff;
+  --text:#edf5ff;
+  --muted:#9bb0d0;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Tahoma,Arial,sans-serif;
+  margin:0;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(0,229,255,.16), transparent 22%),
+    radial-gradient(circle at 85% 15%, rgba(255,43,214,.18), transparent 22%),
+    radial-gradient(circle at 50% 80%, rgba(0,255,157,.10), transparent 28%),
+    linear-gradient(135deg, var(--bg1), var(--bg2));
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size:34px 34px;
+  pointer-events:none;
+  opacity:.22;
+}
+.glow1,.glow2,.glow3{
+  position:fixed; border-radius:999px; filter:blur(80px); pointer-events:none; opacity:.48;
+}
+.glow1{width:220px;height:220px;background:rgba(0,229,255,.23);top:60px;left:30px}
+.glow2{width:260px;height:260px;background:rgba(255,43,214,.18);right:50px;top:100px}
+.glow3{width:280px;height:280px;background:rgba(0,255,157,.12);left:35%;bottom:30px}
+
+.wrap{width:min(1180px,94vw);margin:24px auto 42px;position:relative;z-index:1}
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap
+}
+.logoWrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logoOrb{
+  width:46px;height:46px;border-radius:16px;
+  background:linear-gradient(135deg, rgba(0,229,255,.24), rgba(255,43,214,.22));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 24px rgba(0,229,255,.25), inset 0 0 24px rgba(255,255,255,.04);
+}
+.brandTitle{
+  font-size:26px;font-weight:1000;letter-spacing:.4px;
+  text-shadow:0 0 22px rgba(0,229,255,.18), 0 0 14px rgba(255,43,214,.12);
+}
+.brandSub{font-size:12px;color:var(--muted)}
+
+.badge{
+  padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px);
+  box-shadow:0 0 18px rgba(0,229,255,.08);
+  font-size:12px
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+
+.card{
+  background:linear-gradient(180deg, rgba(12,18,37,.82), rgba(10,16,32,.90));
+  border:1px solid var(--border);
+  border-radius:24px;padding:18px;
+  backdrop-filter:blur(18px);
+  box-shadow:
+    0 15px 40px rgba(0,0,0,.35),
+    0 0 0 1px rgba(255,255,255,.02) inset,
+    0 0 24px rgba(0,229,255,.06);
+}
+.card:hover{
+  box-shadow:
+    0 18px 44px rgba(0,0,0,.38),
+    0 0 0 1px rgba(255,255,255,.03) inset,
+    0 0 34px rgba(0,229,255,.12);
+}
+.title{
+  font-size:19px;font-weight:1000;margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:10px
+}
+.pill{
+  font-size:11px;padding:6px 10px;border-radius:999px;white-space:nowrap;
+  border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.10);
+  box-shadow:0 0 20px rgba(0,229,255,.08) inset;
+}
+.row{
+  display:flex;justify-content:space-between;gap:12px;padding:11px 13px;border-radius:16px;
+  background:rgba(8,17,32,.68);border:1px solid rgba(101,132,212,.18);margin-top:10px
+}
+.k{opacity:.78}
+.v{font-weight:900;word-break:break-all;text-align:left;direction:ltr}
+.players{
+  margin-top:12px;border:1px solid rgba(101,132,212,.18);border-radius:18px;overflow:hidden;background:rgba(8,17,32,.6)
+}
+table{width:100%;border-collapse:collapse}
+th,td{
+  padding:11px 12px;border-bottom:1px solid rgba(101,132,212,.16);text-align:left;direction:ltr;font-size:13px
+}
+th{color:#d6edff;background:rgba(0,229,255,.06)}
+tr:last-child td{border-bottom:none}
+
+.actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+button{
+  flex:1;padding:12px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.05);color:#fff;font-weight:1000;cursor:pointer;
+  box-shadow:0 0 18px rgba(255,255,255,.04) inset;
+  transition:.18s transform ease,.18s filter ease,.18s box-shadow ease;
+}
+button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+button.danger{
+  border-color:rgba(255,77,109,.35);background:rgba(255,77,109,.12);
+  box-shadow:0 0 22px rgba(255,77,109,.10) inset, 0 0 18px rgba(255,77,109,.06);
+}
+button.ban{
+  border-color:rgba(128,0,128,.35);background:rgba(128,0,128,.12);
+  box-shadow:0 0 22px rgba(128,0,128,.10) inset, 0 0 18px rgba(128,0,128,.06);
+}
+button.run{
+  border-color:rgba(0,255,157,.28);background:rgba(0,255,157,.10);
+  box-shadow:0 0 22px rgba(0,255,157,.10) inset, 0 0 18px rgba(0,255,157,.06);
+}
+button.neon{
+  border-color:rgba(0,229,255,.34);background:rgba(0,229,255,.11);
+  box-shadow:0 0 22px rgba(0,229,255,.10) inset, 0 0 18px rgba(0,229,255,.06);
+}
+.hint{
+  opacity:.82;font-size:12px;margin-top:12px;line-height:1.7;color:var(--muted)
+}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.muted{color:var(--muted)}
+.input{
+  flex:1;padding:12px 14px;border-radius:16px;border:1px solid rgba(101,132,212,.18);
+  background:rgba(8,17,32,.78);color:#fff;outline:none;font-weight:800;min-width:0
+}
+.prefix{
+  padding:12px 14px;border-radius:16px;border:1px solid rgba(101,132,212,.18);
+  background:rgba(8,17,32,.78);color:#fff;font-weight:1000;white-space:nowrap;direction:ltr
+}
+.commandWrap{
+  display:flex;gap:10px;align-items:center;direction:ltr;margin-top:10px;flex-wrap:wrap
+}
+.loginScreen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px;position:relative;z-index:1
+}
+.loginCard{
+  width:min(430px,92vw);
+  background:linear-gradient(180deg, rgba(12,18,37,.86), rgba(10,16,32,.92));
+  border:1px solid rgba(0,229,255,.18);
+  border-radius:28px;padding:26px;
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.4),
+    0 0 34px rgba(0,229,255,.09),
+    inset 0 0 34px rgba(255,255,255,.03);
+  backdrop-filter:blur(18px)
+}
+.loginTitle{
+  margin:0 0 6px;text-align:center;font-size:30px;font-weight:1000;
+  text-shadow:0 0 24px rgba(0,229,255,.14)
+}
+.loginSub{text-align:center;color:var(--muted);margin:0 0 20px}
+.loginForm{display:flex;flex-direction:column;gap:10px}
+.loginInput{
+  width:100%;padding:15px;border-radius:16px;border:1px solid rgba(101,132,212,.18);
+  background:rgba(8,17,32,.80);color:#fff;outline:none;font-weight:800
+}
+.loginBtn{
+  border-color:rgba(0,229,255,.32);background:rgba(0,229,255,.12);
+  box-shadow:0 0 28px rgba(0,229,255,.10) inset, 0 0 18px rgba(0,229,255,.08)
+}
+.errorBox{
+  margin-top:12px;background:rgba(255,77,109,.12);border:1px solid rgba(255,77,109,.28);
+  color:#ffd7d7;padding:12px;border-radius:16px;display:none
+}
+.hidden{display:none!important}
+.panelTopRight{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.smallBtn{flex:unset;padding:9px 13px;border-radius:14px}
+.sectionTitle{
+  margin:14px 0 8px;font-weight:1000;font-size:13px;color:#bfeaff;letter-spacing:.3px;text-transform:uppercase
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: linear-gradient(180deg, rgba(12,18,37,.98), rgba(10,16,32,.98));
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 28px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 0 50px rgba(184,41,255,.2);
+}
+
+.modal-title {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 1000;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 0 15px rgba(184,41,255,.3);
+}
+
+.modal-input {
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 16px;
+  border: 1px solid rgba(184,41,255,.3);
+  background: rgba(8,17,32,.90);
+  color: #fff;
+  outline: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.modal-input:focus {
+  border-color: rgba(184,41,255,.8);
+  box-shadow: 0 0 20px rgba(184,41,255,.2);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 14px;
+  font-weight: 1000;
+}
+
+/* Ban Management Section */
+.ban-stats {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.ban-stat-card {
+  flex: 1;
+  min-width: 120px;
+  padding: 15px;
+  border-radius: 18px;
+  background: rgba(184,41,255,.08);
+  border: 1px solid rgba(184,41,255,.25);
+  text-align: center;
+}
+
+.ban-stat-number {
+  font-size: 24px;
+  font-weight: 1000;
+  color: var(--purple);
+  text-shadow: 0 0 15px rgba(184,41,255,.3);
+}
+
+.ban-stat-label {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 5px;
+}
+
+.ban-tabs {
+  display: flex;
+  gap: 5px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+
+.ban-tab {
+  padding: 8px 15px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  cursor: pointer;
+  font-size: 12px;
+  transition: 0.2s;
+}
+
+.ban-tab.active {
+  background: rgba(184,41,255,.15);
+  border-color: rgba(184,41,255,.4);
+}
+
+.ban-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 15px;
+}
+
+.ban-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(8,17,32,.6);
+  border: 1px solid rgba(184,41,255,.15);
+  margin-bottom: 8px;
+}
+
+.ban-info {
+  flex: 1;
+}
+
+.ban-value {
+  font-weight: 1000;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.ban-reason {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.ban-unban {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255,77,109,.1);
+  border: 1px solid rgba(255,77,109,.3);
+  color: #ffb0b0;
+  cursor: pointer;
+  font-size: 11px;
+  transition: 0.2s;
+}
+
+.ban-unban:hover {
+  background: rgba(255,77,109,.3);
+}
+</style>
+</head>
+<body>
+<div class="glow1"></div>
+<div class="glow2"></div>
+<div class="glow3"></div>
+
+<!-- شاشة تسجيل الدخول -->
+<div id="loginScreen" class="loginScreen">
+  <div class="loginCard">
+    <h1 class="loginTitle">MC Control Panel</h1>
+    <p class="loginSub">نظام حظر متكامل + تحكم كامل</p>
+
+    <div class="loginForm">
+      <input id="username" class="loginInput" type="text" placeholder="اسم المستخدم" autocomplete="username"/>
+      <input id="password" class="loginInput" type="password" placeholder="كلمة السر" autocomplete="current-password"/>
+      <button id="loginBtn" class="loginBtn" onclick="login()">دخول</button>
+    </div>
+
+    <div id="loginError" class="errorBox"></div>
+  </div>
+</div>
+
+<!-- اللوحة الرئيسية -->
+<div class="wrap hidden" id="panel">
+  <div class="top">
+    <div class="logoWrap">
+      <div class="logoOrb"></div>
+      <div>
+        <div class="brandTitle">MC Panel Pro</div>
+        <div class="brandSub">نظام حذر متكامل مع HWID & IP Ban</div>
+      </div>
+    </div>
+
+    <div class="panelTopRight">
+      <div class="badge" id="status">…</div>
+      <div class="badge mono" id="banCount">0 محظور</div>
+      <button class="smallBtn neon" onclick="showBanManager()">إدارة المحظورين</button>
+      <button class="smallBtn danger" onclick="logout()">تسجيل خروج</button>
+    </div>
+  </div>
+
+  <!-- إحصائيات سريعة -->
+  <div class="ban-stats" id="banStats">
+    <div class="ban-stat-card">
+      <div class="ban-stat-number" id="statHwid">0</div>
+      <div class="ban-stat-label">HWID</div>
+    </div>
+    <div class="ban-stat-card">
+      <div class="ban-stat-number" id="statIp">0</div>
+      <div class="ban-stat-label">IP</div>
+    </div>
+    <div class="ban-stat-card">
+      <div class="ban-stat-number" id="statUuid">0</div>
+      <div class="ban-stat-label">UUID</div>
+    </div>
+    <div class="ban-stat-card">
+      <div class="ban-stat-number" id="statUsername">0</div>
+      <div class="ban-stat-label">Usernames</div>
+    </div>
+  </div>
+
+  <!-- Grid السيرفرات -->
+  <div id="grid" class="grid"></div>
+
+  <div class="hint">
+    🛡️ نظام الحظر المتكامل: HWID + IP + UUID + Username + Server
+  </div>
+</div>
+
+<!-- مودال الحظر -->
+<div id="banModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2 class="modal-title">🔨 حظر لاعب</h2>
+    <input type="text" id="banPlayerName" class="modal-input" placeholder="اسم اللاعب">
+    <input type="text" id="banReason" class="modal-input" placeholder="سبب الحظر (اختياري)">
+    <input type="hidden" id="banServerUuid">
+    <div class="modal-actions">
+      <button onclick="executeBan()" class="ban">حظر</button>
+      <button onclick="closeBanModal()" class="neon">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال إدارة المحظورين -->
+<div id="banManagerModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width: 800px;">
+    <h2 class="modal-title">📋 إدارة المحظورين</h2>
+    
+    <!-- Tabs -->
+    <div class="ban-tabs">
+      <div class="ban-tab active" onclick="switchBanTab('hwid')" id="tab-hwid">HWID</div>
+      <div class="ban-tab" onclick="switchBanTab('ip')" id="tab-ip">IP</div>
+      <div class="ban-tab" onclick="switchBanTab('uuid')" id="tab-uuid">UUID</div>
+      <div class="ban-tab" onclick="switchBanTab('username')" id="tab-username">Usernames</div>
+      <div class="ban-tab" onclick="switchBanTab('server')" id="tab-server">Servers</div>
+    </div>
+
+    <!-- Lists -->
+    <div id="banList-hwid" class="ban-list"></div>
+    <div id="banList-ip" class="ban-list" style="display:none;"></div>
+    <div id="banList-uuid" class="ban-list" style="display:none;"></div>
+    <div id="banList-username" class="ban-list" style="display:none;"></div>
+    <div id="banList-server" class="ban-list" style="display:none;"></div>
+
+    <div class="modal-actions" style="margin-top: 20px;">
+      <button onclick="closeBanManager()" class="neon">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== دوال مساعدة ==========
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+// ========== إدارة الجلسة ==========
+function showLogin(message = ""){
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("panel").classList.add("hidden");
+  const err = document.getElementById("loginError");
+  if(message){
+    err.style.display = "block";
+    err.textContent = message;
+  }else{
+    err.style.display = "none";
+    err.textContent = "";
+  }
+  stopAutoRefresh();
+}
+
+function showPanel(){
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("panel").classList.remove("hidden");
+  startAutoRefresh();
+}
+
+// ========== Auto Refresh ==========
+let refreshInterval;
+
+function startAutoRefresh() {
+  if (refreshInterval) clearInterval(refreshInterval);
+  refreshInterval = setInterval(() => {
+    loadServers();
+    loadBanStats();
+  }, 5000);
+}
+
+function stopAutoRefresh() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+    refreshInterval = null;
+  }
+}
+
+// ========== دالة الكارد ==========
+function card(server){
+  const name = escapeHtml(server.serverName || "Unknown");
+  const uuid = escapeHtml(server.serverUuid || "Unknown");
+  const pluginName = escapeHtml(server.pluginName || "Unknown");
+  const pluginVersion = escapeHtml(server.pluginVersion || "Unknown");
+  const lastUpdate = escapeHtml(server.lastUpdate || "—");
+  const players = Array.isArray(server.players) ? server.players : [];
+
+  const rows = players.map(p => {
+    const pn = escapeHtml(p.name || "Unknown");
+    const pu = escapeHtml(p.uuid || "Unknown");
+    return `<tr><td>${pn}</td><td class="mono">${pu}</td></tr>`;
+  }).join("");
+
+  return `
+  <div class="card">
+    <div class="title">
+      <span>${name}</span>
+      <span class="pill">Players: ${players.length}</span>
+    </div>
+
+    <div class="row">
+      <div class="k">Server UUID</div>
+      <div class="v mono">${uuid}</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Plugin</div>
+      <div class="v">${pluginName} v${pluginVersion}</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Last Update</div>
+      <div class="v mono">${lastUpdate}</div>
+    </div>
+
+    <div class="players">
+      <table>
+        <thead><tr><th>Player</th><th>UUID</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="2" class="muted">لا يوجد لاعبين</td></tr>`}</tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <button class="danger" onclick="shutdownServer('${uuid}')">Shutdown</button>
+      <button class="neon" onclick="updateFromGithub('${uuid}')">Update</button>
+      <button class="ban" onclick="showBanModal('${uuid}', '${name}')">Ban Player</button>
+    </div>
+
+    <div class="sectionTitle">Command</div>
+    <div class="row" style="display:block;">
+      <div class="commandWrap">
+        <div class="prefix">/mezo</div>
+        <input
+          id="cmd-${uuid}"
+          class="input"
+          type="text"
+          placeholder="big 5"
+          onkeydown="if(event.key==='Enter'){sendCommand('${uuid}')}"
+        />
+        <button class="run" onclick="sendCommand('${uuid}')">Execute</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+// ========== التحقق من الجلسة ==========
+async function checkSession(){
+  try{
+    const r = await fetch('/auth/me', { credentials:'same-origin' });
+    const j = await r.json();
+
+    if(j && j.ok && j.loggedIn){
+      showPanel();
+      await loadServers();
+      await loadBanStats();
+    }else{
+      showLogin();
+    }
+  }catch(e){
+    showLogin("تعذر التحقق من تسجيل الدخول");
+  }
+}
+
+// ========== تسجيل الدخول ==========
+async function login(){
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+
+  try{
+    const btn = document.getElementById("loginBtn");
+    btn.disabled = true;
+    btn.textContent = "جارٍ الدخول...";
+
+    const r = await fetch('/auth/login', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      credentials:'same-origin',
+      body: JSON.stringify({ username, password })
+    });
+
+    const j = await r.json().catch(() => ({}));
+
+    if(!r.ok || !j.ok){
+      showLogin(j?.error || "اسم المستخدم أو كلمة السر غلط");
+      return;
+    }
+
+    document.getElementById("password").value = "";
+    showPanel();
+    await loadServers();
+    await loadBanStats();
+  }catch(e){
+    showLogin("حصل خطأ أثناء تسجيل الدخول");
+  }finally{
+    const btn = document.getElementById("loginBtn");
+    btn.disabled = false;
+    btn.textContent = "دخول";
+  }
+}
+
+// ========== تسجيل الخروج ==========
+async function logout(){
+  stopAutoRefresh();
+  try{
+    await fetch('/auth/logout', {
+      method:'POST',
+      credentials:'same-origin'
+    });
+  }catch(e){}
+  showLogin();
+}
+
+// ========== تحميل السيرفرات ==========
+async function loadServers(){
+  try{
+    const r = await fetch('/api/servers', { credentials:'same-origin' });
+
+    if(r.status === 401){
+      showLogin("لازم تسجل دخول الأول");
+      return;
+    }
+
+    const j = await r.json();
+    const list = (j && j.ok && Array.isArray(j.servers)) ? j.servers : [];
+
+    document.getElementById('grid').innerHTML =
+      list.length ? list.map(card).join("") : `<div class="badge">لا يوجد سيرفرات مسجلة</div>`;
+
+    document.getElementById('status').textContent = `SERVERS: ${list.length}`;
+  }catch(e){
+    document.getElementById('status').textContent = 'OFFLINE';
+  }
+}
+
+// ========== تحميل إحصائيات الحظر ==========
+async function loadBanStats(){
+  try{
+    const r = await fetch('/api/bans', { credentials:'same-origin' });
+    const j = await r.json();
+    
+    if(j.ok && j.bans){
+      const bans = j.bans;
+      
+      document.getElementById('statHwid').textContent = bans.hwids?.length || 0;
+      document.getElementById('statIp').textContent = bans.ips?.length || 0;
+      document.getElementById('statUuid').textContent = bans.uuids?.length || 0;
+      document.getElementById('statUsername').textContent = bans.usernames?.length || 0;
+      document.getElementById('banCount').textContent = 
+        (bans.hwids?.length || 0) + (bans.ips?.length || 0) + ' محظور';
+    }
+  }catch(e){}
+}
+
+// ========== دوال التحكم بالسيرفرات ==========
+async function shutdownServer(uuid){
+  if(!confirm("متأكد تعمل Shutdown؟")) return;
+
+  try{
+    const r = await fetch(`/api/servers/${encodeURIComponent(uuid)}/shutdown`,{
+      method:'POST',
+      credentials:'same-origin'
+    });
+
+    const j = await r.json().catch(() => ({}));
+
+    if(r.status === 401){
+      showLogin("الجلسة انتهت، سجل دخول تاني");
+      return;
+    }
+
+    if(!r.ok || !j.ok){
+      alert(j?.error || "فشل تنفيذ Shutdown");
+      return;
+    }
+
+    alert("تم إرسال أمر Shutdown");
+    await loadServers();
+  }catch(e){
+    alert("حصل خطأ أثناء إرسال أمر Shutdown");
+  }
+}
+
+async function updateFromGithub(uuid){
+  if(!confirm("متأكد تعمل Update من GitHub للسيرفر ده؟")) return;
+
+  try{
+    const r = await fetch(`/api/servers/${encodeURIComponent(uuid)}/update-github`, {
+      method:'POST',
+      credentials:'same-origin'
+    });
+
+    const j = await r.json().catch(() => ({}));
+
+    if(r.status === 401){
+      showLogin("الجلسة انتهت، سجل دخول تاني");
+      return;
+    }
+
+    if(!r.ok || !j.ok){
+      alert(j?.error || "فشل إرسال أمر Update");
+      return;
+    }
+
+    alert("تم إرسال أمر Update من GitHub");
+    await loadServers();
+  }catch(e){
+    alert("حصل خطأ أثناء إرسال أمر Update");
+  }
+}
+
+async function sendCommand(uuid){
+  const input = document.getElementById(`cmd-${uuid}`);
+  if (!input) return;
+
+  const suffix = String(input.value || "").trim();
+
+  try{
+    const r = await fetch(`/api/servers/${encodeURIComponent(uuid)}/command`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials:'same-origin',
+      body: JSON.stringify({ suffix })
+    });
+
+    const j = await r.json().catch(() => ({}));
+
+    if(r.status === 401){
+      showLogin("الجلسة انتهت، سجل دخول تاني");
+      return;
+    }
+
+    if (!r.ok || !j.ok) {
+      alert(j?.error || "فشل إرسال الأمر");
+      return;
+    }
+
+    input.value = "";
+    await loadServers();
+  }catch(e){
+    alert("حصل خطأ أثناء إرسال الأمر");
+  }
+}
+
+// ========== دوال الحظر ==========
+function showBanModal(serverUuid, serverName) {
+  document.getElementById('banServerUuid').value = serverUuid;
+  document.getElementById('banPlayerName').value = '';
+  document.getElementById('banReason').value = '';
+  document.getElementById('banModal').style.display = 'flex';
+}
+
+function closeBanModal() {
+  document.getElementById('banModal').style.display = 'none';
+}
+
+async function executeBan() {
+  const serverUuid = document.getElementById('banServerUuid').value;
+  const playerName = document.getElementById('banPlayerName').value.trim();
+  const reason = document.getElementById('banReason').value.trim() || 'Banned by panel';
+
+  if (!playerName) {
+    alert('من فضلك أدخل اسم اللاعب');
+    return;
+  }
+
+  try {
+    const r = await fetch(`/api/servers/${encodeURIComponent(serverUuid)}/ban-player`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ playerName, reason })
+    });
+
+    const j = await r.json();
+
+    if (!r.ok || !j.ok) {
+      alert(j?.error || 'فشل حظر اللاعب');
+      return;
+    }
+
+    alert(`✅ تم إرسال أمر حظر ${playerName}`);
+    closeBanModal();
+    await loadBanStats();
+  } catch (e) {
+    alert('حدث خطأ أثناء الحظر');
+  }
+}
+
+// ========== إدارة المحظورين ==========
+let currentBanTab = 'hwid';
+let bansData = null;
+
+async function showBanManager() {
+  document.getElementById('banManagerModal').style.display = 'flex';
+  await loadBansData();
+}
+
+function closeBanManager() {
+  document.getElementById('banManagerModal').style.display = 'none';
+}
+
+async function loadBansData() {
+  try {
+    const r = await fetch('/api/bans', { credentials: 'same-origin' });
+    const j = await r.json();
+    
+    if (j.ok && j.bans) {
+      bansData = j.bans;
+      renderBanList(currentBanTab);
+    }
+  } catch (e) {
+    console.error('Failed to load bans:', e);
+  }
+}
+
+function switchBanTab(tab) {
+  currentBanTab = tab;
+  
+  // تحديث الـ tabs
+  document.querySelectorAll('.ban-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  
+  // إخفاء كل القوائم
+  document.querySelectorAll('[id^="banList-"]').forEach(el => el.style.display = 'none');
+  
+  // إظهار القائمة المطلوبة
+  document.getElementById(`banList-${tab}`).style.display = 'block';
+  
+  // عرض البيانات
+  renderBanList(tab);
+}
+
+function renderBanList(tab) {
+  if (!bansData) return;
+  
+  const listElement = document.getElementById(`banList-${tab}`);
+  const items = bansData[tab + 's'] || []; // hwids, ips, uuids, usernames, servers
+  
+  if (items.length === 0) {
+    listElement.innerHTML = '<div class="muted" style="text-align:center;padding:20px;">لا يوجد محظورين</div>';
+    return;
+  }
+  
+  let html = '';
+  items.forEach(item => {
+    const value = item.hwid || item.ip || item.uuid || item.username || item.serverUuid;
+    const reason = item.reason || 'No reason';
+    const bannedBy = item.bannedBy || 'system';
+    const bannedAt = item.bannedAt ? new Date(item.bannedAt).toLocaleString('ar-EG') : 'Unknown';
+    
+    html += `
+      <div class="ban-item">
+        <div class="ban-info">
+          <div class="ban-value">${escapeHtml(value)}</div>
+          <div class="ban-reason">${escapeHtml(reason)} - by ${escapeHtml(bannedBy)}</div>
+          <div style="font-size:10px;opacity:0.5;">${escapeHtml(bannedAt)}</div>
+        </div>
+        <div>
+          <button class="ban-unban" onclick="unbanItem('${tab}', '${escapeHtml(value)}')">رفع الحظر</button>
+        </div>
+      </div>
+    `;
+  });
+  
+  listElement.innerHTML = html;
+}
+
+async function unbanItem(type, value) {
+  if (!confirm(`متأكد ترفع الحظر عن ${value}؟`)) return;
+  
+  try {
+    const r = await fetch('/api/bans/unban', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ type, value })
+    });
+    
+    const j = await r.json();
+    
+    if (j.ok) {
+      alert('✅ تم رفع الحظر بنجاح');
+      await loadBansData();
+      await loadBanStats();
+    } else {
+      alert(j?.error || 'فشل رفع الحظر');
+    }
+  } catch (e) {
+    alert('حدث خطأ');
+  }
+}
+
+// ========== Event Listeners ==========
+document.getElementById("password").addEventListener("keydown", (event) => {
+  if(event.key === "Enter") login();
+});
+
+document.getElementById("username").addEventListener("keydown", (event) => {
+  if(event.key === "Enter") login();
+});
+
+// ========== بدء التشغيل ==========
+checkSession();
+</script>
+</body>
+</html>
