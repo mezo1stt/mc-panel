@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MC Control Panel - نظام الحظر المتكامل</title>
+<title>MC Control Panel - نظام الحظر المتكامل مع MAC</title>
 <style>
 :root{
   --bg1:#070b16;
@@ -16,8 +16,19 @@
   --green:#00ff9d;
   --danger:#ff4d6d;
   --purple:#b829ff;
+  --orange:#ffaa00;
   --text:#edf5ff;
   --muted:#9bb0d0;
+  
+  /* ألوان النوتفيكيشن */
+  --success-bg:rgba(0,255,157,.15);
+  --success-border:rgba(0,255,157,.4);
+  --error-bg:rgba(255,77,109,.15);
+  --error-border:rgba(255,77,109,.4);
+  --warning-bg:rgba(255,170,0,.15);
+  --warning-border:rgba(255,170,0,.4);
+  --info-bg:rgba(0,229,255,.15);
+  --info-border:rgba(0,229,255,.4);
 }
 *{box-sizing:border-box}
 html,body{min-height:100%}
@@ -50,6 +61,120 @@ body::before{
 .glow2{width:260px;height:260px;background:rgba(255,43,214,.18);right:50px;top:100px}
 .glow3{width:280px;height:280px;background:rgba(0,255,157,.12);left:35%;bottom:30px}
 
+/* ========== نظام النوتفيكيشن الجديد ========== */
+.notification-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 350px;
+  pointer-events: none;
+}
+
+.notification {
+  pointer-events: auto;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: rgba(10, 16, 32, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 229, 255, 0.2);
+  transform: translateX(-120%);
+  animation: slideIn 0.3s ease forwards;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-right: 4px solid;
+}
+
+.notification.success {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  box-shadow: 0 0 30px rgba(0, 255, 157, 0.2);
+}
+
+.notification.error {
+  border-color: var(--error-border);
+  background: var(--error-bg);
+  box-shadow: 0 0 30px rgba(255, 77, 109, 0.2);
+}
+
+.notification.warning {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  box-shadow: 0 0 30px rgba(255, 170, 0, 0.2);
+}
+
+.notification.info {
+  border-color: var(--info-border);
+  background: var(--info-bg);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+}
+
+.notification-icon {
+  font-size: 24px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-weight: 1000;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.notification-message {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.notification-close {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: 0.2s;
+  font-size: 18px;
+  padding: 0 5px;
+}
+
+.notification-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+}
+
+.notification.closing {
+  animation: slideOut 0.3s ease forwards;
+}
+
+/* باقي التنسيقات */
 .wrap{width:min(1180px,94vw);margin:24px auto 42px;position:relative;z-index:1}
 .top{
   display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap
@@ -73,7 +198,7 @@ body::before{
   box-shadow:0 0 18px rgba(0,229,255,.08);
   font-size:12px
 }
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:16px}
 
 .card{
   background:linear-gradient(180deg, rgba(12,18,37,.82), rgba(10,16,32,.90));
@@ -110,17 +235,18 @@ body::before{
 }
 table{width:100%;border-collapse:collapse}
 th,td{
-  padding:11px 12px;border-bottom:1px solid rgba(101,132,212,.16);text-align:left;direction:ltr;font-size:13px
+  padding:11px 8px;border-bottom:1px solid rgba(101,132,212,.16);text-align:left;direction:ltr;font-size:12px
 }
 th{color:#d6edff;background:rgba(0,229,255,.06)}
 tr:last-child td{border-bottom:none}
 
-.actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 button{
-  flex:1;padding:12px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+  flex:1;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.05);color:#fff;font-weight:1000;cursor:pointer;
   box-shadow:0 0 18px rgba(255,255,255,.04) inset;
   transition:.18s transform ease,.18s filter ease,.18s box-shadow ease;
+  font-size:12px
 }
 button:hover{filter:brightness(1.08);transform:translateY(-1px)}
 button.danger{
@@ -130,6 +256,10 @@ button.danger{
 button.ban{
   border-color:rgba(128,0,128,.35);background:rgba(128,0,128,.12);
   box-shadow:0 0 22px rgba(128,0,128,.10) inset, 0 0 18px rgba(128,0,128,.06);
+}
+button.mac-ban{
+  border-color:rgba(255,165,0,.35);background:rgba(255,165,0,.12);
+  box-shadow:0 0 22px rgba(255,165,0,.10) inset, 0 0 18px rgba(255,165,0,.06);
 }
 button.run{
   border-color:rgba(0,255,157,.28);background:rgba(0,255,157,.10);
@@ -145,15 +275,15 @@ button.neon{
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .muted{color:var(--muted)}
 .input{
-  flex:1;padding:12px 14px;border-radius:16px;border:1px solid rgba(101,132,212,.18);
+  flex:1;padding:10px 12px;border-radius:14px;border:1px solid rgba(101,132,212,.18);
   background:rgba(8,17,32,.78);color:#fff;outline:none;font-weight:800;min-width:0
 }
 .prefix{
-  padding:12px 14px;border-radius:16px;border:1px solid rgba(101,132,212,.18);
+  padding:10px 12px;border-radius:14px;border:1px solid rgba(101,132,212,.18);
   background:rgba(8,17,32,.78);color:#fff;font-weight:1000;white-space:nowrap;direction:ltr
 }
 .commandWrap{
-  display:flex;gap:10px;align-items:center;direction:ltr;margin-top:10px;flex-wrap:wrap
+  display:flex;gap:8px;align-items:center;direction:ltr;margin-top:10px;flex-wrap:wrap
 }
 .loginScreen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px;position:relative;z-index:1
@@ -268,8 +398,8 @@ button.neon{
 
 .ban-stat-card {
   flex: 1;
-  min-width: 120px;
-  padding: 15px;
+  min-width: 100px;
+  padding: 12px;
   border-radius: 18px;
   background: rgba(184,41,255,.08);
   border: 1px solid rgba(184,41,255,.25);
@@ -277,14 +407,14 @@ button.neon{
 }
 
 .ban-stat-number {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 1000;
   color: var(--purple);
   text-shadow: 0 0 15px rgba(184,41,255,.3);
 }
 
 .ban-stat-label {
-  font-size: 11px;
+  font-size: 10px;
   opacity: 0.7;
   margin-top: 5px;
 }
@@ -335,11 +465,11 @@ button.neon{
 .ban-value {
   font-weight: 1000;
   font-family: monospace;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .ban-reason {
-  font-size: 11px;
+  font-size: 10px;
   opacity: 0.7;
 }
 
@@ -364,11 +494,14 @@ button.neon{
 <div class="glow2"></div>
 <div class="glow3"></div>
 
+<!-- ========== نظام النوتفيكيشن ========== -->
+<div class="notification-container" id="notificationContainer"></div>
+
 <!-- شاشة تسجيل الدخول -->
 <div id="loginScreen" class="loginScreen">
   <div class="loginCard">
     <h1 class="loginTitle">MC Control Panel</h1>
-    <p class="loginSub">نظام حظر متكامل + تحكم كامل</p>
+    <p class="loginSub">نظام حظر متكامل مع MAC Address</p>
 
     <div class="loginForm">
       <input id="username" class="loginInput" type="text" placeholder="اسم المستخدم" autocomplete="username"/>
@@ -387,7 +520,7 @@ button.neon{
       <div class="logoOrb"></div>
       <div>
         <div class="brandTitle">MC Panel Pro</div>
-        <div class="brandSub">نظام حذر متكامل مع HWID & IP Ban</div>
+        <div class="brandSub">نظام حظر متكامل مع MAC & HWID</div>
       </div>
     </div>
 
@@ -414,6 +547,10 @@ button.neon{
       <div class="ban-stat-label">UUID</div>
     </div>
     <div class="ban-stat-card">
+      <div class="ban-stat-number" id="statMac">0</div>
+      <div class="ban-stat-label">MAC</div>
+    </div>
+    <div class="ban-stat-card">
       <div class="ban-stat-number" id="statUsername">0</div>
       <div class="ban-stat-label">Usernames</div>
     </div>
@@ -423,11 +560,11 @@ button.neon{
   <div id="grid" class="grid"></div>
 
   <div class="hint">
-    🛡️ نظام الحظر المتكامل: HWID + IP + UUID + Username + Server
+    🛡️ نظام الحظر المتكامل: HWID + IP + UUID + MAC + Username
   </div>
 </div>
 
-<!-- مودال الحظر -->
+<!-- مودال حظر لاعب -->
 <div id="banModal" class="modal" style="display:none;">
   <div class="modal-content">
     <h2 class="modal-title">🔨 حظر لاعب</h2>
@@ -437,6 +574,20 @@ button.neon{
     <div class="modal-actions">
       <button onclick="executeBan()" class="ban">حظر</button>
       <button onclick="closeBanModal()" class="neon">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال حظر MAC -->
+<div id="banMacModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2 class="modal-title">🔒 حظر MAC Address</h2>
+    <input type="text" id="banMacAddress" class="modal-input" placeholder="MAC Address" readonly>
+    <input type="text" id="banMacPlayer" class="modal-input" placeholder="اسم اللاعب" readonly>
+    <input type="text" id="banMacReason" class="modal-input" placeholder="سبب الحظر (اختياري)">
+    <div class="modal-actions">
+      <button onclick="executeMacBan()" class="mac-ban">حظر MAC</button>
+      <button onclick="closeMacBanModal()" class="neon">إلغاء</button>
     </div>
   </div>
 </div>
@@ -451,16 +602,16 @@ button.neon{
       <div class="ban-tab active" onclick="switchBanTab('hwid')" id="tab-hwid">HWID</div>
       <div class="ban-tab" onclick="switchBanTab('ip')" id="tab-ip">IP</div>
       <div class="ban-tab" onclick="switchBanTab('uuid')" id="tab-uuid">UUID</div>
+      <div class="ban-tab" onclick="switchBanTab('mac')" id="tab-mac">MAC</div>
       <div class="ban-tab" onclick="switchBanTab('username')" id="tab-username">Usernames</div>
-      <div class="ban-tab" onclick="switchBanTab('server')" id="tab-server">Servers</div>
     </div>
 
     <!-- Lists -->
     <div id="banList-hwid" class="ban-list"></div>
     <div id="banList-ip" class="ban-list" style="display:none;"></div>
     <div id="banList-uuid" class="ban-list" style="display:none;"></div>
+    <div id="banList-mac" class="ban-list" style="display:none;"></div>
     <div id="banList-username" class="ban-list" style="display:none;"></div>
-    <div id="banList-server" class="ban-list" style="display:none;"></div>
 
     <div class="modal-actions" style="margin-top: 20px;">
       <button onclick="closeBanManager()" class="neon">إغلاق</button>
@@ -469,6 +620,50 @@ button.neon{
 </div>
 
 <script>
+// ========== دوال النوتفيكيشن ==========
+function showNotification(type, title, message, duration = 5000) {
+  const container = document.getElementById('notificationContainer');
+  const id = 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  
+  const html = `
+    <div class="notification ${type}" id="${id}">
+      <div class="notification-icon">${icons[type]}</div>
+      <div class="notification-content">
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+      </div>
+      <div class="notification-close" onclick="closeNotification('${id}')">✕</div>
+    </div>
+  `;
+  
+  container.insertAdjacentHTML('beforeend', html);
+  
+  if (duration > 0) {
+    setTimeout(() => {
+      closeNotification(id);
+    }, duration);
+  }
+}
+
+function closeNotification(id) {
+  const notif = document.getElementById(id);
+  if (notif) {
+    notif.classList.add('closing');
+    setTimeout(() => {
+      if (notif && notif.parentNode) {
+        notif.remove();
+      }
+    }, 300);
+  }
+}
+
 // ========== دوال مساعدة ==========
 function escapeHtml(s){
   return String(s ?? "")
@@ -486,6 +681,7 @@ function showLogin(message = ""){
   if(message){
     err.style.display = "block";
     err.textContent = message;
+    showNotification('error', 'خطأ في تسجيل الدخول', message);
   }else{
     err.style.display = "none";
     err.textContent = "";
@@ -497,6 +693,7 @@ function showPanel(){
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("panel").classList.remove("hidden");
   startAutoRefresh();
+  showNotification('success', 'تم تسجيل الدخول', 'مرحباً بك في لوحة التحكم', 3000);
 }
 
 // ========== Auto Refresh ==========
@@ -528,8 +725,19 @@ function card(server){
 
   const rows = players.map(p => {
     const pn = escapeHtml(p.name || "Unknown");
-    const pu = escapeHtml(p.uuid || "Unknown");
-    return `<tr><td>${pn}</td><td class="mono">${pu}</td></tr>`;
+    const pu = escapeHtml(p.uuid || "Unknown").substring(0, 8) + '...';
+    const pm = escapeHtml(p.mac || "00:00:00:00:00:00");
+    return `<tr>
+      <td>${pn}</td>
+      <td class="mono" title="${escapeHtml(p.uuid)}">${pu}</td>
+      <td class="mono" style="font-size:11px;">${pm}</td>
+      <td>
+        <button class="mac-ban" style="padding:4px 8px;font-size:10px;" 
+                onclick="showBanMacModal('${escapeHtml(pm)}', '${escapeHtml(pn)}')">
+          حظر MAC
+        </button>
+      </td>
+    </tr>`;
   }).join("");
 
   return `
@@ -541,7 +749,7 @@ function card(server){
 
     <div class="row">
       <div class="k">Server UUID</div>
-      <div class="v mono">${uuid}</div>
+      <div class="v mono">${uuid.substring(0, 16)}...</div>
     </div>
 
     <div class="row">
@@ -556,8 +764,17 @@ function card(server){
 
     <div class="players">
       <table>
-        <thead><tr><th>Player</th><th>UUID</th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="2" class="muted">لا يوجد لاعبين</td></tr>`}</tbody>
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>UUID</th>
+            <th>MAC Address</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || `<tr><td colspan="4" class="muted" style="text-align:center;">لا يوجد لاعبين متصلين</td></tr>`}
+        </tbody>
       </table>
     </div>
 
@@ -648,6 +865,7 @@ async function logout(){
       method:'POST',
       credentials:'same-origin'
     });
+    showNotification('info', 'تسجيل خروج', 'تم تسجيل الخروج بنجاح');
   }catch(e){}
   showLogin();
 }
@@ -671,6 +889,7 @@ async function loadServers(){
     document.getElementById('status').textContent = `SERVERS: ${list.length}`;
   }catch(e){
     document.getElementById('status').textContent = 'OFFLINE';
+    showNotification('error', 'خطأ', 'فشل تحميل بيانات السيرفرات');
   }
 }
 
@@ -686,11 +905,17 @@ async function loadBanStats(){
       document.getElementById('statHwid').textContent = bans.hwids?.length || 0;
       document.getElementById('statIp').textContent = bans.ips?.length || 0;
       document.getElementById('statUuid').textContent = bans.uuids?.length || 0;
+      document.getElementById('statMac').textContent = bans.macs?.length || 0;
       document.getElementById('statUsername').textContent = bans.usernames?.length || 0;
-      document.getElementById('banCount').textContent = 
-        (bans.hwids?.length || 0) + (bans.ips?.length || 0) + ' محظور';
+      
+      const total = (bans.hwids?.length || 0) + (bans.ips?.length || 0) + 
+                    (bans.uuids?.length || 0) + (bans.macs?.length || 0) + 
+                    (bans.usernames?.length || 0);
+      document.getElementById('banCount').textContent = total + ' محظور';
     }
-  }catch(e){}
+  }catch(e){
+    console.error('Failed to load ban stats:', e);
+  }
 }
 
 // ========== دوال التحكم بالسيرفرات ==========
@@ -711,14 +936,14 @@ async function shutdownServer(uuid){
     }
 
     if(!r.ok || !j.ok){
-      alert(j?.error || "فشل تنفيذ Shutdown");
+      showNotification('error', 'فشل', j?.error || "فشل تنفيذ Shutdown");
       return;
     }
 
-    alert("تم إرسال أمر Shutdown");
+    showNotification('success', 'تم', 'تم إرسال أمر Shutdown بنجاح');
     await loadServers();
   }catch(e){
-    alert("حصل خطأ أثناء إرسال أمر Shutdown");
+    showNotification('error', 'خطأ', 'حدث خطأ أثناء إرسال أمر Shutdown');
   }
 }
 
@@ -739,14 +964,14 @@ async function updateFromGithub(uuid){
     }
 
     if(!r.ok || !j.ok){
-      alert(j?.error || "فشل إرسال أمر Update");
+      showNotification('error', 'فشل', j?.error || "فشل إرسال أمر Update");
       return;
     }
 
-    alert("تم إرسال أمر Update من GitHub");
+    showNotification('success', 'تم', 'تم إرسال أمر Update من GitHub');
     await loadServers();
   }catch(e){
-    alert("حصل خطأ أثناء إرسال أمر Update");
+    showNotification('error', 'خطأ', 'حدث خطأ أثناء إرسال أمر Update');
   }
 }
 
@@ -772,14 +997,15 @@ async function sendCommand(uuid){
     }
 
     if (!r.ok || !j.ok) {
-      alert(j?.error || "فشل إرسال الأمر");
+      showNotification('error', 'فشل', j?.error || "فشل إرسال الأمر");
       return;
     }
 
     input.value = "";
+    showNotification('success', 'تم', `تم إرسال الأمر: /mezo ${suffix}`);
     await loadServers();
   }catch(e){
-    alert("حصل خطأ أثناء إرسال الأمر");
+    showNotification('error', 'خطأ', 'حدث خطأ أثناء إرسال الأمر');
   }
 }
 
@@ -801,7 +1027,7 @@ async function executeBan() {
   const reason = document.getElementById('banReason').value.trim() || 'Banned by panel';
 
   if (!playerName) {
-    alert('من فضلك أدخل اسم اللاعب');
+    showNotification('warning', 'تنبيه', 'من فضلك أدخل اسم اللاعب');
     return;
   }
 
@@ -816,15 +1042,56 @@ async function executeBan() {
     const j = await r.json();
 
     if (!r.ok || !j.ok) {
-      alert(j?.error || 'فشل حظر اللاعب');
+      showNotification('error', 'فشل', j?.error || 'فشل حظر اللاعب');
       return;
     }
 
-    alert(`✅ تم إرسال أمر حظر ${playerName}`);
+    showNotification('success', 'تم الحظر', `تم حظر ${playerName} بنجاح`);
     closeBanModal();
     await loadBanStats();
   } catch (e) {
-    alert('حدث خطأ أثناء الحظر');
+    showNotification('error', 'خطأ', 'حدث خطأ أثناء الحظر');
+  }
+}
+
+// ========== دوال حظر MAC ==========
+function showBanMacModal(mac, playerName) {
+  document.getElementById('banMacAddress').value = mac;
+  document.getElementById('banMacPlayer').value = playerName;
+  document.getElementById('banMacReason').value = '';
+  document.getElementById('banMacModal').style.display = 'flex';
+}
+
+function closeMacBanModal() {
+  document.getElementById('banMacModal').style.display = 'none';
+}
+
+async function executeMacBan() {
+  const mac = document.getElementById('banMacAddress').value;
+  const playerName = document.getElementById('banMacPlayer').value;
+  const reason = document.getElementById('banMacReason').value.trim() || `Banned MAC for player ${playerName}`;
+
+  try {
+    const r = await fetch('/api/bans/mac', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ mac, reason, playerName })
+    });
+
+    const j = await r.json();
+
+    if (!r.ok || !j.ok) {
+      showNotification('error', 'فشل', j?.error || 'فشل حظر MAC');
+      return;
+    }
+
+    showNotification('success', 'تم حظر MAC', `تم حظر MAC ${mac} بنجاح`);
+    closeMacBanModal();
+    await loadBanStats();
+    await loadServers();
+  } catch (e) {
+    showNotification('error', 'خطأ', 'حدث خطأ أثناء حظر MAC');
   }
 }
 
@@ -851,24 +1118,19 @@ async function loadBansData() {
       renderBanList(currentBanTab);
     }
   } catch (e) {
-    console.error('Failed to load bans:', e);
+    showNotification('error', 'خطأ', 'فشل تحميل بيانات المحظورين');
   }
 }
 
 function switchBanTab(tab) {
   currentBanTab = tab;
   
-  // تحديث الـ tabs
   document.querySelectorAll('.ban-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
   
-  // إخفاء كل القوائم
   document.querySelectorAll('[id^="banList-"]').forEach(el => el.style.display = 'none');
-  
-  // إظهار القائمة المطلوبة
   document.getElementById(`banList-${tab}`).style.display = 'block';
   
-  // عرض البيانات
   renderBanList(tab);
 }
 
@@ -876,7 +1138,7 @@ function renderBanList(tab) {
   if (!bansData) return;
   
   const listElement = document.getElementById(`banList-${tab}`);
-  const items = bansData[tab + 's'] || []; // hwids, ips, uuids, usernames, servers
+  const items = bansData[tab + 's'] || [];
   
   if (items.length === 0) {
     listElement.innerHTML = '<div class="muted" style="text-align:center;padding:20px;">لا يوجد محظورين</div>';
@@ -885,7 +1147,7 @@ function renderBanList(tab) {
   
   let html = '';
   items.forEach(item => {
-    const value = item.hwid || item.ip || item.uuid || item.username || item.serverUuid;
+    const value = item.hwid || item.ip || item.uuid || item.mac || item.username;
     const reason = item.reason || 'No reason';
     const bannedBy = item.bannedBy || 'system';
     const bannedAt = item.bannedAt ? new Date(item.bannedAt).toLocaleString('ar-EG') : 'Unknown';
@@ -921,14 +1183,14 @@ async function unbanItem(type, value) {
     const j = await r.json();
     
     if (j.ok) {
-      alert('✅ تم رفع الحظر بنجاح');
+      showNotification('success', 'تم رفع الحظر', `تم رفع الحظر عن ${value}`);
       await loadBansData();
       await loadBanStats();
     } else {
-      alert(j?.error || 'فشل رفع الحظر');
+      showNotification('error', 'فشل', j?.error || 'فشل رفع الحظر');
     }
   } catch (e) {
-    alert('حدث خطأ');
+    showNotification('error', 'خطأ', 'حدث خطأ');
   }
 }
 
