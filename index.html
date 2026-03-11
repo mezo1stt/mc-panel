@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MC Control Panel - نظام الحظر المتكامل مع MAC</title>
+<title>MC Control Panel - نظام الحظر المتكامل مع MAC & HWID</title>
 <style>
 :root{
   --bg1:#070b16;
@@ -61,7 +61,7 @@ body::before{
 .glow2{width:260px;height:260px;background:rgba(255,43,214,.18);right:50px;top:100px}
 .glow3{width:280px;height:280px;background:rgba(0,255,157,.12);left:35%;bottom:30px}
 
-/* ========== نظام النوتفيكيشن الجديد ========== */
+/* ========== نظام النوتفيكيشن ========== */
 .notification-container {
   position: fixed;
   top: 20px;
@@ -174,8 +174,7 @@ body::before{
   animation: slideOut 0.3s ease forwards;
 }
 
-/* باقي التنسيقات */
-.wrap{width:min(1180px,94vw);margin:24px auto 42px;position:relative;z-index:1}
+.wrap{width:min(1280px,94vw);margin:24px auto 42px;position:relative;z-index:1}
 .top{
   display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap
 }
@@ -198,7 +197,7 @@ body::before{
   box-shadow:0 0 18px rgba(0,229,255,.08);
   font-size:12px
 }
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(450px,1fr));gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(550px,1fr));gap:16px}
 
 .card{
   background:linear-gradient(180deg, rgba(12,18,37,.82), rgba(10,16,32,.90));
@@ -231,9 +230,9 @@ body::before{
 .k{opacity:.78}
 .v{font-weight:900;word-break:break-all;text-align:left;direction:ltr}
 .players{
-  margin-top:12px;border:1px solid rgba(101,132,212,.18);border-radius:18px;overflow:hidden;background:rgba(8,17,32,.6)
+  margin-top:12px;border:1px solid rgba(101,132,212,.18);border-radius:18px;overflow-x:auto;background:rgba(8,17,32,.6)
 }
-table{width:100%;border-collapse:collapse}
+table{width:100%;border-collapse:collapse;min-width:800px}
 th,td{
   padding:11px 8px;border-bottom:1px solid rgba(101,132,212,.16);text-align:left;direction:ltr;font-size:12px
 }
@@ -260,6 +259,10 @@ button.ban{
 button.mac-ban{
   border-color:rgba(255,165,0,.35);background:rgba(255,165,0,.12);
   box-shadow:0 0 22px rgba(255,165,0,.10) inset, 0 0 18px rgba(255,165,0,.06);
+}
+button.hwid-ban{
+  border-color:rgba(0,255,255,.35);background:rgba(0,255,255,.12);
+  box-shadow:0 0 22px rgba(0,255,255,.10) inset, 0 0 18px rgba(0,255,255,.06);
 }
 button.run{
   border-color:rgba(0,255,157,.28);background:rgba(0,255,157,.10);
@@ -345,7 +348,7 @@ button.neon{
   border-radius: 28px;
   padding: 28px;
   width: 90%;
-  max-width: 450px;
+  max-width: 500px;
   box-shadow: 0 0 50px rgba(184,41,255,.2);
 }
 
@@ -501,7 +504,7 @@ button.neon{
 <div id="loginScreen" class="loginScreen">
   <div class="loginCard">
     <h1 class="loginTitle">MC Control Panel</h1>
-    <p class="loginSub">نظام حظر متكامل مع MAC Address</p>
+    <p class="loginSub">نظام حظر متكامل مع MAC & HWID & Processor</p>
 
     <div class="loginForm">
       <input id="username" class="loginInput" type="text" placeholder="اسم المستخدم" autocomplete="username"/>
@@ -520,7 +523,7 @@ button.neon{
       <div class="logoOrb"></div>
       <div>
         <div class="brandTitle">MC Panel Pro</div>
-        <div class="brandSub">نظام حظر متكامل مع MAC & HWID</div>
+        <div class="brandSub">نظام حظر متكامل مع MAC & HWID & Processor</div>
       </div>
     </div>
 
@@ -551,8 +554,16 @@ button.neon{
       <div class="ban-stat-label">MAC</div>
     </div>
     <div class="ban-stat-card">
-      <div class="ban-stat-number" id="statUsername">0</div>
-      <div class="ban-stat-label">Usernames</div>
+      <div class="ban-stat-number" id="statProcessor">0</div>
+      <div class="ban-stat-label">Processor</div>
+    </div>
+    <div class="ban-stat-card">
+      <div class="ban-stat-number" id="statMotherboard">0</div>
+      <div class="ban-stat-label">Motherboard</div>
+    </div>
+    <div class="ban-stat-card">
+      <div class="ban-stat-number" id="statDisk">0</div>
+      <div class="ban-stat-label">Disk</div>
     </div>
   </div>
 
@@ -560,7 +571,7 @@ button.neon{
   <div id="grid" class="grid"></div>
 
   <div class="hint">
-    🛡️ نظام الحظر المتكامل: HWID + IP + UUID + MAC + Username
+    🛡️ نظام الحظر المتكامل: HWID + IP + UUID + MAC + Processor + Motherboard + Disk
   </div>
 </div>
 
@@ -592,9 +603,23 @@ button.neon{
   </div>
 </div>
 
+<!-- مودال حظر HWID -->
+<div id="banHwidModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2 class="modal-title">🖥️ حظر HWID</h2>
+    <input type="text" id="banHwidValue" class="modal-input" placeholder="HWID" readonly>
+    <input type="text" id="banHwidPlayer" class="modal-input" placeholder="اسم اللاعب" readonly>
+    <input type="text" id="banHwidReason" class="modal-input" placeholder="سبب الحظر (اختياري)">
+    <div class="modal-actions">
+      <button onclick="executeHwidBan()" class="hwid-ban">حظر HWID</button>
+      <button onclick="closeHwidBanModal()" class="neon">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <!-- مودال إدارة المحظورين -->
 <div id="banManagerModal" class="modal" style="display:none;">
-  <div class="modal-content" style="max-width: 800px;">
+  <div class="modal-content" style="max-width: 900px;">
     <h2 class="modal-title">📋 إدارة المحظورين</h2>
     
     <!-- Tabs -->
@@ -603,6 +628,9 @@ button.neon{
       <div class="ban-tab" onclick="switchBanTab('ip')" id="tab-ip">IP</div>
       <div class="ban-tab" onclick="switchBanTab('uuid')" id="tab-uuid">UUID</div>
       <div class="ban-tab" onclick="switchBanTab('mac')" id="tab-mac">MAC</div>
+      <div class="ban-tab" onclick="switchBanTab('processor')" id="tab-processor">Processor</div>
+      <div class="ban-tab" onclick="switchBanTab('motherboard')" id="tab-motherboard">Motherboard</div>
+      <div class="ban-tab" onclick="switchBanTab('disk')" id="tab-disk">Disk</div>
       <div class="ban-tab" onclick="switchBanTab('username')" id="tab-username">Usernames</div>
     </div>
 
@@ -611,6 +639,9 @@ button.neon{
     <div id="banList-ip" class="ban-list" style="display:none;"></div>
     <div id="banList-uuid" class="ban-list" style="display:none;"></div>
     <div id="banList-mac" class="ban-list" style="display:none;"></div>
+    <div id="banList-processor" class="ban-list" style="display:none;"></div>
+    <div id="banList-motherboard" class="ban-list" style="display:none;"></div>
+    <div id="banList-disk" class="ban-list" style="display:none;"></div>
     <div id="banList-username" class="ban-list" style="display:none;"></div>
 
     <div class="modal-actions" style="margin-top: 20px;">
@@ -714,7 +745,7 @@ function stopAutoRefresh() {
   }
 }
 
-// ========== دالة الكارد ==========
+// ========== دالة الكارد - المعدلة لعرض كل البيانات ==========
 function card(server){
   const name = escapeHtml(server.serverName || "Unknown");
   const uuid = escapeHtml(server.serverUuid || "Unknown");
@@ -727,15 +758,30 @@ function card(server){
     const pn = escapeHtml(p.name || "Unknown");
     const pu = escapeHtml(p.uuid || "Unknown").substring(0, 8) + '...';
     const pm = escapeHtml(p.mac || "00:00:00:00:00:00");
+    const ph = escapeHtml(p.hwid || "N/A").substring(0, 12) + '...';
+    const pp = escapeHtml(p.processor || "N/A").substring(0, 12) + '...';
+    const pmb = escapeHtml(p.motherboard || "N/A").substring(0, 12) + '...';
+    const pd = escapeHtml(p.disk || "N/A").substring(0, 12) + '...';
+    
     return `<tr>
       <td>${pn}</td>
       <td class="mono" title="${escapeHtml(p.uuid)}">${pu}</td>
-      <td class="mono" style="font-size:11px;">${pm}</td>
+      <td class="mono" style="font-size:11px;" title="${escapeHtml(p.mac)}">${pm}</td>
+      <td class="mono" style="font-size:11px;" title="${escapeHtml(p.hwid)}">${ph}</td>
+      <td class="mono" style="font-size:11px;" title="${escapeHtml(p.processor)}">${pp}</td>
+      <td class="mono" style="font-size:11px;" title="${escapeHtml(p.motherboard)}">${pmb}</td>
+      <td class="mono" style="font-size:11px;" title="${escapeHtml(p.disk)}">${pd}</td>
       <td>
-        <button class="mac-ban" style="padding:4px 8px;font-size:10px;" 
-                onclick="showBanMacModal('${escapeHtml(pm)}', '${escapeHtml(pn)}')">
-          حظر MAC
-        </button>
+        <div style="display:flex;gap:4px;">
+          <button class="mac-ban" style="padding:4px 8px;font-size:10px;" 
+                  onclick="showBanMacModal('${escapeHtml(p.mac)}', '${escapeHtml(pn)}')">
+            MAC
+          </button>
+          <button class="hwid-ban" style="padding:4px 8px;font-size:10px;" 
+                  onclick="showBanHwidModal('${escapeHtml(p.hwid)}', '${escapeHtml(pn)}')">
+            HWID
+          </button>
+        </div>
       </td>
     </tr>`;
   }).join("");
@@ -750,6 +796,16 @@ function card(server){
     <div class="row">
       <div class="k">Server UUID</div>
       <div class="v mono">${uuid.substring(0, 16)}...</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Server HWID</div>
+      <div class="v mono">${escapeHtml(server.hwid || "N/A").substring(0, 16)}...</div>
+    </div>
+
+    <div class="row">
+      <div class="k">Processor ID</div>
+      <div class="v mono">${escapeHtml(server.processor || "N/A").substring(0, 16)}...</div>
     </div>
 
     <div class="row">
@@ -768,12 +824,16 @@ function card(server){
           <tr>
             <th>Player</th>
             <th>UUID</th>
-            <th>MAC Address</th>
-            <th>Action</th>
+            <th>MAC</th>
+            <th>HWID</th>
+            <th>Processor</th>
+            <th>Motherboard</th>
+            <th>Disk</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          ${rows || `<tr><td colspan="4" class="muted" style="text-align:center;">لا يوجد لاعبين متصلين</td></tr>`}
+          ${rows || `<tr><td colspan="8" class="muted" style="text-align:center;">لا يوجد لاعبين متصلين</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -906,11 +966,14 @@ async function loadBanStats(){
       document.getElementById('statIp').textContent = bans.ips?.length || 0;
       document.getElementById('statUuid').textContent = bans.uuids?.length || 0;
       document.getElementById('statMac').textContent = bans.macs?.length || 0;
-      document.getElementById('statUsername').textContent = bans.usernames?.length || 0;
+      document.getElementById('statProcessor').textContent = bans.processors?.length || 0;
+      document.getElementById('statMotherboard').textContent = bans.motherboards?.length || 0;
+      document.getElementById('statDisk').textContent = bans.disks?.length || 0;
       
       const total = (bans.hwids?.length || 0) + (bans.ips?.length || 0) + 
-                    (bans.uuids?.length || 0) + (bans.macs?.length || 0) + 
-                    (bans.usernames?.length || 0);
+                    (bans.uuids?.length || 0) + (bans.macs?.length || 0) +
+                    (bans.processors?.length || 0) + (bans.motherboards?.length || 0) +
+                    (bans.disks?.length || 0);
       document.getElementById('banCount').textContent = total + ' محظور';
     }
   }catch(e){
@@ -1095,6 +1158,47 @@ async function executeMacBan() {
   }
 }
 
+// ========== دوال حظر HWID ==========
+function showBanHwidModal(hwid, playerName) {
+  document.getElementById('banHwidValue').value = hwid;
+  document.getElementById('banHwidPlayer').value = playerName;
+  document.getElementById('banHwidReason').value = '';
+  document.getElementById('banHwidModal').style.display = 'flex';
+}
+
+function closeHwidBanModal() {
+  document.getElementById('banHwidModal').style.display = 'none';
+}
+
+async function executeHwidBan() {
+  const hwid = document.getElementById('banHwidValue').value;
+  const playerName = document.getElementById('banHwidPlayer').value;
+  const reason = document.getElementById('banHwidReason').value.trim() || `Banned HWID for player ${playerName}`;
+
+  try {
+    const r = await fetch('/api/bans/hwid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ hwid, reason, playerName })
+    });
+
+    const j = await r.json();
+
+    if (!r.ok || !j.ok) {
+      showNotification('error', 'فشل', j?.error || 'فشل حظر HWID');
+      return;
+    }
+
+    showNotification('success', 'تم حظر HWID', `تم حظر HWID بنجاح`);
+    closeHwidBanModal();
+    await loadBanStats();
+    await loadServers();
+  } catch (e) {
+    showNotification('error', 'خطأ', 'حدث خطأ أثناء حظر HWID');
+  }
+}
+
 // ========== إدارة المحظورين ==========
 let currentBanTab = 'hwid';
 let bansData = null;
@@ -1147,7 +1251,7 @@ function renderBanList(tab) {
   
   let html = '';
   items.forEach(item => {
-    const value = item.hwid || item.ip || item.uuid || item.mac || item.username;
+    const value = item.hwid || item.ip || item.uuid || item.mac || item.processor || item.motherboard || item.disk || item.username;
     const reason = item.reason || 'No reason';
     const bannedBy = item.bannedBy || 'system';
     const bannedAt = item.bannedAt ? new Date(item.bannedAt).toLocaleString('ar-EG') : 'Unknown';
