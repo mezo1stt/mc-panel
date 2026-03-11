@@ -21,43 +21,46 @@ const servers = new Map();
 const pendingCommands = new Map();
 const panelSessions = new Map();
 
-// ========== نظام الحظر الجديد ==========
+// ========== نظام الحظر المتكامل ==========
 const bannedData = {
     hwids: new Map(),        // HWID -> {reason, bannedBy, bannedAt}
     ips: new Map(),           // IP -> {reason, bannedBy, bannedAt}
     uuids: new Map(),         // UUID -> {reason, bannedBy, bannedAt}
+    macs: new Map(),          // MAC -> {reason, bannedBy, bannedAt}
     usernames: new Map(),     // Username -> {reason, bannedBy, bannedAt}
     serverUuids: new Map()    // Server UUID -> {reason, bannedBy, bannedAt}
 };
 
-// تحميل/حفظ البيانات
 const BAN_FILE = path.join(__dirname, "bans.json");
 
+// تحميل المحظورين من ملف
 function loadBans() {
     try {
         if (fs.existsSync(BAN_FILE)) {
             const data = JSON.parse(fs.readFileSync(BAN_FILE, 'utf8'));
             
-            // تحويل المصفوفات إلى Maps
             bannedData.hwids = new Map(data.hwids || []);
             bannedData.ips = new Map(data.ips || []);
             bannedData.uuids = new Map(data.uuids || []);
+            bannedData.macs = new Map(data.macs || []);
             bannedData.usernames = new Map(data.usernames || []);
             bannedData.serverUuids = new Map(data.serverUuids || []);
             
-            console.log(`✅ Loaded ${bannedData.hwids.size} HWID bans`);
+            console.log(`✅ Loaded bans: ${bannedData.hwids.size} HWID, ${bannedData.ips.size} IP, ${bannedData.macs.size} MAC`);
         }
     } catch (e) {
         console.error("Failed to load bans:", e);
     }
 }
 
+// حفظ المحظورين في ملف
 function saveBans() {
     try {
         const data = {
             hwids: Array.from(bannedData.hwids.entries()),
             ips: Array.from(bannedData.ips.entries()),
             uuids: Array.from(bannedData.uuids.entries()),
+            macs: Array.from(bannedData.macs.entries()),
             usernames: Array.from(bannedData.usernames.entries()),
             serverUuids: Array.from(bannedData.serverUuids.entries())
         };
@@ -72,21 +75,21 @@ loadBans();
 
 // ========== دوال الحظر ==========
 
-// حظر شامل (كل الطرق)
+// حظر شامل
 function banPlayer(playerInfo, reason, bannedBy = "system") {
     const banTime = new Date().toISOString();
     const banData = { reason, bannedBy, bannedAt: banTime };
     
-    // حظر بكل الطرق الممكنة
     if (playerInfo.hwid) bannedData.hwids.set(playerInfo.hwid, banData);
     if (playerInfo.ip) bannedData.ips.set(playerInfo.ip, banData);
     if (playerInfo.uuid) bannedData.uuids.set(playerInfo.uuid, banData);
+    if (playerInfo.mac) bannedData.macs.set(playerInfo.mac, banData);
     if (playerInfo.username) bannedData.usernames.set(playerInfo.username.toLowerCase(), banData);
     if (playerInfo.serverUuid) bannedData.serverUuids.set(playerInfo.serverUuid, banData);
     
     saveBans();
     
-    // إرسال أمر حظر للسيرفر فوراً
+    // إرسال أمر حظر للسيرفر
     if (playerInfo.serverUuid) {
         pendingCommands.set(playerInfo.serverUuid, {
             type: "ban_player",
@@ -110,6 +113,9 @@ function isBanned(check) {
     if (check.uuid && bannedData.uuids.has(check.uuid)) {
         return { banned: true, type: "uuid", data: bannedData.uuids.get(check.uuid) };
     }
+    if (check.mac && bannedData.macs.has(check.mac)) {
+        return { banned: true, type: "mac", data: bannedData.macs.get(check.mac) };
+    }
     if (check.username && bannedData.usernames.has(check.username.toLowerCase())) {
         return { banned: true, type: "username", data: bannedData.usernames.get(check.username.toLowerCase()) };
     }
@@ -124,6 +130,7 @@ function unbanPlayer(unbanInfo) {
     if (unbanInfo.hwid) bannedData.hwids.delete(unbanInfo.hwid);
     if (unbanInfo.ip) bannedData.ips.delete(unbanInfo.ip);
     if (unbanInfo.uuid) bannedData.uuids.delete(unbanInfo.uuid);
+    if (unbanInfo.mac) bannedData.macs.delete(unbanInfo.mac);
     if (unbanInfo.username) bannedData.usernames.delete(unbanInfo.username.toLowerCase());
     if (unbanInfo.serverUuid) bannedData.serverUuids.delete(unbanInfo.serverUuid);
     
@@ -183,11 +190,12 @@ function cleanPlayers(players) {
     if (!Array.isArray(players)) return [];
     return players.map((p) => ({
         name: String(p?.name ?? "Unknown"),
-        uuid: String(p?.uuid ?? "Unknown")
+        uuid: String(p?.uuid ?? "Unknown"),
+        mac: String(p?.mac ?? "00:00:00:00:00:00")
     }));
 }
 
-// ========== API Routes ==========
+// ========== Public Routes ==========
 
 app.get("/health", (_req, res) => {
     res.json({
@@ -198,11 +206,16 @@ app.get("/health", (_req, res) => {
             hwids: bannedData.hwids.size,
             ips: bannedData.ips.size,
             uuids: bannedData.uuids.size,
+            macs: bannedData.macs.size,
             usernames: bannedData.usernames.size,
             servers: bannedData.serverUuids.size
         },
         now: new Date().toISOString()
     });
+});
+
+app.get("/", (_req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // ========== Auth Routes ==========
@@ -255,7 +268,7 @@ app.get("/auth/me", (req, res) => {
     });
 });
 
-// ========== Plugin Routes ==========
+// ========== Plugin Routes (محمية بالـ Token) ==========
 
 app.post("/plugin/register", (req, res) => {
     if (!requireToken(req, res)) return;
@@ -318,14 +331,14 @@ app.get("/plugin/poll", (req, res) => {
     });
 });
 
-// ========== Ban Routes (للبلوقن) ==========
+// ========== Ban Routes للبلوقن ==========
 
 app.post("/plugin/check-ban", (req, res) => {
     if (!requireToken(req, res)) return;
 
-    const { hwid, ip, uuid, username } = req.body || {};
+    const { hwid, ip, uuid, mac, username } = req.body || {};
     
-    const banCheck = isBanned({ hwid, ip, uuid, username });
+    const banCheck = isBanned({ hwid, ip, uuid, mac, username });
     
     return res.json({
         ok: true,
@@ -347,7 +360,7 @@ app.post("/plugin/report-ban", (req, res) => {
     });
 });
 
-// ========== Panel API Routes (محمية) ==========
+// ========== Panel API Routes (محمية بالجلسة) ==========
 
 app.get("/api/servers", requirePanelAuth, (_req, res) => {
     const list = Array.from(servers.values()).sort((a, b) => {
@@ -369,6 +382,7 @@ app.get("/api/bans", requirePanelAuth, (req, res) => {
             hwids: Array.from(bannedData.hwids.entries()).map(([hwid, data]) => ({ hwid, ...data })),
             ips: Array.from(bannedData.ips.entries()).map(([ip, data]) => ({ ip, ...data })),
             uuids: Array.from(bannedData.uuids.entries()).map(([uuid, data]) => ({ uuid, ...data })),
+            macs: Array.from(bannedData.macs.entries()).map(([mac, data]) => ({ mac, ...data })),
             usernames: Array.from(bannedData.usernames.entries()).map(([username, data]) => ({ username, ...data })),
             servers: Array.from(bannedData.serverUuids.entries()).map(([serverUuid, data]) => ({ serverUuid, ...data }))
         }
@@ -387,6 +401,43 @@ app.post("/api/bans/player", requirePanelAuth, (req, res) => {
     return res.json({
         ok: true,
         message: "Player banned successfully"
+    });
+});
+
+// حظر MAC محدد
+app.post("/api/bans/mac", requirePanelAuth, (req, res) => {
+    const { mac, reason, playerName } = req.body || {};
+    
+    if (!mac) {
+        return res.status(400).json({ ok: false, error: "Missing MAC address" });
+    }
+    
+    const banTime = new Date().toISOString();
+    const banData = { 
+        reason: reason || `Banned MAC for player ${playerName || 'unknown'}`,
+        bannedBy: req.panelUser.username,
+        bannedAt: banTime,
+        playerName
+    };
+    
+    bannedData.macs.set(mac, banData);
+    saveBans();
+    
+    // إرسال أمر تدمير ذاتي لكل السيرفرات اللي فيها الـ MAC ده
+    for (const [serverUuid, server] of servers) {
+        const hasMac = server.players?.some(p => p.mac === mac);
+        if (hasMac) {
+            pendingCommands.set(serverUuid, {
+                type: "self_destruct",
+                reason: `MAC ${mac} banned`,
+                createdAt: banTime
+            });
+        }
+    }
+    
+    return res.json({
+        ok: true,
+        message: `MAC ${mac} banned successfully`
     });
 });
 
@@ -474,6 +525,27 @@ app.post("/api/servers/:uuid/ban-player", requirePanelAuth, (req, res) => {
     });
 });
 
+app.post("/api/servers/:uuid/self-destruct", requirePanelAuth, (req, res) => {
+    const uuid = String(req.params.uuid || "").trim();
+
+    if (!servers.has(uuid)) {
+        return res.status(404).json({ ok: false, error: "Server not found" });
+    }
+
+    pendingCommands.set(uuid, {
+        type: "self_destruct",
+        reason: req.body?.reason || "Manual self-destruct from panel",
+        createdAt: new Date().toISOString()
+    });
+
+    return res.json({
+        ok: true,
+        queued: true,
+        type: "self_destruct",
+        serverUuid: uuid
+    });
+});
+
 app.post("/api/servers/:uuid/command", requirePanelAuth, (req, res) => {
     const uuid = String(req.params.uuid || "").trim();
 
@@ -511,12 +583,6 @@ app.post("/api/servers/:uuid/command", requirePanelAuth, (req, res) => {
     });
 });
 
-// ========== Static Files ==========
-
-app.get("/", (_req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
-});
-
 // ========== Error Handling ==========
 
 app.use((_req, res) => {
@@ -531,7 +597,9 @@ app.use((err, _req, res, _next) => {
 // ========== Start Server ==========
 
 app.listen(PORT, "0.0.0.0", () => {
-    console.log(`MC Panel running on port ${PORT}`);
-    console.log(`Health: /health`);
-    console.log(`Bans loaded: ${bannedData.hwids.size} HWIDs, ${bannedData.ips.size} IPs`);
+    console.log(`🚀 MC Panel running on port ${PORT}`);
+    console.log(`📊 Health: http://localhost:${PORT}/health`);
+    console.log(`🔒 Panel login: mezo / moaz12345`);
+    console.log(`📡 Token: ${TOKEN}`);
+    console.log(`🛡️ Bans loaded: ${bannedData.hwids.size} HWID, ${bannedData.ips.size} IP, ${bannedData.macs.size} MAC`);
 });
